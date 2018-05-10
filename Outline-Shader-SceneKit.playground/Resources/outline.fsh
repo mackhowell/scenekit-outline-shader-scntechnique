@@ -1,4 +1,4 @@
-// Frag shader for outline pass
+// Frag shader for stencil pass
 
 
 void main() {

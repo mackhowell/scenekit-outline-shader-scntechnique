@@ -1,4 +1,4 @@
-// Vertex Shader for outline pass
+// Vertex Shader for stencil pass
 
 attribute vec4 a_vertex;
 
