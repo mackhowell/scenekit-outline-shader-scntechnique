@@ -8,6 +8,7 @@ var scnView: SCNView = {
     v.backgroundColor = UIColor.black
     v.allowsCameraControl = true
     v.showsStatistics = true
+    v.autoenablesDefaultLighting = true
     return v
 }()
 
@@ -17,7 +18,6 @@ scnView.scene = scene
 let sphere = SCNSphere(radius: 1.0)
 let sphereNode = SCNNode(geometry: sphere)
 sphereNode.position = SCNVector3(0.8, 1.2, 0.0)
-//sphereNode.geometry?.firstMaterial?.transparencyMode = SCNTransparencyMode.default
 
 let cube = SCNBox(width: 1.5, height: 1.5, length: 1.5, chamferRadius: 0.0)
 let cubeNode = SCNNode(geometry: cube)
@@ -27,22 +27,25 @@ scene.rootNode.addChildNode(sphereNode)
 scene.rootNode.addChildNode(cubeNode)
 
 let stencilPass: [String: Any] = [
-    "program": "stencil",
+    "program": "outline",
     "inputs": [
         "a_vertex": "position-symbol",
         "modelViewProjection": "mvpt-symbol",
     ],
     "outputs": [
         "stencil": "COLOR"
-//        "stencil": "DEPTH"
     ],
     "draw": "DRAW_NODE",
-//    "colorStates": [
-//        "clear": false
-//    ]
     "stencilStates": [
         "enable": true,
-//        "clear": true // default is false.
+        "clear": true,
+        "behavior": [
+            "depthFail": "keep",
+            "fail": "keep",
+            "pass": "replace",
+            "function": "always",
+            "referenceValue": 1
+        ]
     ]
 ]
 
@@ -58,20 +61,13 @@ let embiggenPass: [String: Any] = [
         "color": "COLOR"
     ],
     "draw": "DRAW_NODE",
-    "colorStates": [
-        "clear": true
-    ],
     "stencilStates": [
-//        "clear": true, // default is false.
         "behavior": [
-            // If the depth test fails (i.e. frag is discarded).
             "depthFail": "keep",
-            // If the depth test succeeds and the stencil test fails.
             "fail": "keep",
-            // If the depth and stencil tests succeed.
-            "pass": "zero",
-            // The conditions under which the fragment passes the stencil test.
-            "function": "greater"
+            "pass": "keep",
+            "function": "notEqual",
+            "referenceValue": 1
         ]
     ]
 ]
@@ -82,8 +78,8 @@ let technique: [String: Any] = [
         "stencil": stencilPass
     ],
     "sequence": [
-//        "embiggen", "stencil"
-        "stencil", "embiggen"
+        "stencil",
+        "embiggen"
     ],
     // In all passes, the following symbols (with these semantics) are available.
     "symbols": [
